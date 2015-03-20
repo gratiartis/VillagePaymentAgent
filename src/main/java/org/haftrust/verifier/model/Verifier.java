@@ -4,6 +4,7 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -98,13 +99,13 @@ public class Verifier implements java.io.Serializable {
     @ManyToOne
     private Image image;
     
-    @OneToOne(mappedBy = "verifier")
+    @OneToOne(mappedBy = "verifier", cascade = CascadeType.ALL)
     private Address address;
     
-    @OneToOne(mappedBy = "verifier")
+    @OneToOne(mappedBy = "verifier", cascade = CascadeType.ALL)
     private IdentityDocument identity;
     
-    @OneToOne(mappedBy = "verifier")
+    @OneToOne(mappedBy = "verifier", cascade = CascadeType.ALL)
     private Bank bank;
     
     @OneToMany

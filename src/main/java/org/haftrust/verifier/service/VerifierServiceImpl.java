@@ -48,8 +48,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
-
 @Service("verifierService")
 public class VerifierServiceImpl implements VerifierService {
 
@@ -85,11 +83,6 @@ public class VerifierServiceImpl implements VerifierService {
     private EmployeeType sdVerifierType;
     private EmploymentStatus sdStatus;
     private InterviewStatus sdInterviewStatus;
-
-    private List<Verifier> registeredVerifiersList = new ArrayList<Verifier>();
-    private List<Address> registeredVerifierAddressList = new ArrayList<Address>();
-
-    private List<Verifier> employedVerifiersList = new ArrayList<Verifier>();
 
     @Autowired
     public VerifierServiceImpl(
@@ -237,39 +230,29 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
     public void getEmployedVerifierDetails(int id) {
-        // set verifier details
-        for (Verifier anEmployedVerifiersList : employedVerifiersList) {
-            if (anEmployedVerifiersList.getId() == id) {
-                verifier = anEmployedVerifiersList;
-            }
+        Verifier v = verifierDao.findOne(id);
+        if (v.getStatus() == EmploymentStatus.EMPLOYED) {
+            verifier = v;
         }
     }
 
+    @Transactional
     public void getRegisteredVerifierDetails(int id) {
-        // set verifier details
-        for (Verifier aRegisteredVerifiersList : registeredVerifiersList) {
-            if (aRegisteredVerifiersList.getId() == id) {
-                verifier = aRegisteredVerifiersList;
-            }
+        Verifier v = verifierDao.findOne(id);
+        if (v.getStatus() != EmploymentStatus.REGISTERED) {
+            // Escape early. 
+            return;
         }
 
-        //set address details
-        for (Address aRegisteredVerifierAddressList : registeredVerifierAddressList) {
-            if (aRegisteredVerifierAddressList.getVerifier().getId() == id) {
-                address = aRegisteredVerifierAddressList;
-            }
-        }
-
-        address = addressDao.findByVerifier(verifier);
+        verifier = v;
+        address = v.getAddress();
         verifierDistrict = address.getDistrict();
 
-        image = verifier.getImage();
-        identityDocument = identityDocumentDao.findOneByVerifier(verifier);
-        bank = bankDao.findOneByVerifier(verifier);
-
-        List<Reference> r = referenceDao.findByVerifier(verifier);
-        reference1 = r.get(0);
-        reference2 = r.get(1);
+        image = v.getImage();
+        identityDocument = v.getIdentity();
+        bank = v.getBank();
+        reference1 = v.getReference1();
+        reference2 = v.getReference2();
     }
 
     public List<Fom> getFoms() {
@@ -277,36 +260,13 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
     public List<Verifier> getEmployedVerifiersWithoutDevice() {
-        List<Address> aList = addressDao.findByRegionAndEmployeeType(verifierRegion, EmployeeType.VERIFIER);
-
-        employedVerifiersList = aList.stream()
-                .filter(a -> a.getVerifier().getStatus() == EmploymentStatus.VERIFIED)
-                .filter(a -> a.getVerifier().getMobileDevice() == null)
-                .map(Address::getVerifier)
-                .collect(toList());
-
-        LOG.debug("------------------- employed verifier list size: {}", employedVerifiersList.size());
-
-        return employedVerifiersList;
+        return verifierDao.findByEmploymentStatusAndEmployeeType(
+                EmploymentStatus.VERIFIED, EmployeeType.VERIFIER);
     }
 
     public List<Verifier> getRegisteredVerifiers() {
-        List<Address> aList = addressDao.findByRegionAndEmployeeType(verifierRegion, EmployeeType.VERIFIER);
-        registeredVerifiersList.clear();
-
-        for (int i = 0; i < aList.size(); i++) {
-            if (aList.get(i).getVerifier().getStatus() == EmploymentStatus.REGISTERED) {
-                registeredVerifiersList.add(aList.get(i).getVerifier());
-                LOG.debug("------------------- adsress list, registered verifier id: {}",
-                          aList.get(i).getVerifier().getId());
-            }
-        }
-
-        LOG.debug("------------------- registered verifier list size: {}", registeredVerifiersList.size());
-
-        registeredVerifierAddressList = aList;
-
-        return registeredVerifiersList;
+        return verifierDao.findByRegionAndEmploymentStatusAndEmployeeType(
+                verifierRegion, EmploymentStatus.REGISTERED, EmployeeType.VERIFIER);
     }
 
     public List<Verifier> isVerifier(String email, String password) {
