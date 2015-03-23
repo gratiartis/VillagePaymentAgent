@@ -1,8 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.haftrust.verifier.view;
+
+import javax.validation.constraints.Size;
+
+import org.haftrust.verifier.validation.constraint.Password;
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotEmpty;
 
 /**
  *
@@ -11,8 +13,16 @@ package org.haftrust.verifier.view;
 public class PreRegisterVerifierBean {
 
     private int idVerifier;
+    
+    @NotEmpty @Size(max = 45) @Email
     private String email;
+    
+    // TODO Remove max when BCrypt hashing is in place.
+    @NotEmpty @Password
     private String password;
+    
+    // TODO Remove max when BCrypt hashing is in place.
+    @NotEmpty
     private String repassword;
 
     public int getIdVerifier() {

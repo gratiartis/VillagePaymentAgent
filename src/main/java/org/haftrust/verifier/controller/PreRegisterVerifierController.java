@@ -1,7 +1,8 @@
 package org.haftrust.verifier.controller;
 
+import javax.validation.Valid;
+
 import org.haftrust.verifier.service.VerifierService;
-import org.haftrust.verifier.validator.PreRegisterVerifierValidator;
 import org.haftrust.verifier.view.PreRegisterVerifierBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +21,10 @@ public class PreRegisterVerifierController {
     protected static final String FORM_JSP_PAGE = "preregisterverifier";
     protected static final String RESULT_JSP_PAGE = "preregisterverifierconfirmation";
 
-    private final PreRegisterVerifierValidator validator;
     private final VerifierService verifierService;
 
     @Autowired
-    public PreRegisterVerifierController(final PreRegisterVerifierValidator validator, final VerifierService verifierService) {
-        this.validator = validator;
+    public PreRegisterVerifierController(final VerifierService verifierService) {
         this.verifierService = verifierService;
     }
 
@@ -40,9 +39,7 @@ public class PreRegisterVerifierController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public String onSubmit(@ModelAttribute("prvBean") PreRegisterVerifierBean command, final BindingResult result) {
-
-        validator.validate(command, result);
+    public String onSubmit(@Valid @ModelAttribute("prvBean") PreRegisterVerifierBean command, final BindingResult result) {
 
         if (result.hasErrors()) {
             return FORM_JSP_PAGE;

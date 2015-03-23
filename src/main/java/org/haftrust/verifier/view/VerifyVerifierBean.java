@@ -7,6 +7,7 @@ package org.haftrust.verifier.view;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.haftrust.verifier.model.Address;
 import org.haftrust.verifier.model.Country;
 import org.haftrust.verifier.model.Fom;
@@ -14,6 +15,9 @@ import org.haftrust.verifier.model.Image;
 import org.haftrust.verifier.model.Interview;
 import org.haftrust.verifier.model.Region;
 import org.haftrust.verifier.model.Verifier;
+import org.haftrust.verifier.validation.constraint.BankAccountNumber;
+import org.haftrust.verifier.validation.constraint.BankSortCode;
+import org.haftrust.verifier.validation.constraint.Iban;
 
 /**
  *
@@ -94,11 +98,14 @@ public class VerifyVerifierBean {
     private String reference2VerificationComment;
     //private Reference reference2;
 
+    @BankAccountNumber
     private String bankAccountNumber;
     private String bankName;
     private String bankContactNumber;
     private String bankAddress;
+    @BankSortCode
     private String bankSortCode;
+    @Iban
     private String bankIban;
     private String bankVerificationStatus;
     private String bankVerificationComment;

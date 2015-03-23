@@ -18,6 +18,9 @@ import org.haftrust.verifier.model.enums.EmployeeType;
 import org.haftrust.verifier.model.enums.VerificationStatus;
 import org.haftrust.verifier.model.enums.converters.EmployeeTypeConverter;
 import org.haftrust.verifier.model.enums.converters.VerificationStatusConverter;
+import org.haftrust.verifier.validation.constraint.BankAccountNumber;
+import org.haftrust.verifier.validation.constraint.BankSortCode;
+import org.haftrust.verifier.validation.constraint.Iban;
 
 /**
  *
@@ -32,6 +35,7 @@ public class Bank implements java.io.Serializable {
     @Column(name = "idbank")
     private Integer id;
     
+    @BankAccountNumber
     @Column(name = "accountnumber")
     private String accountNumber;
     
@@ -41,10 +45,12 @@ public class Bank implements java.io.Serializable {
     @Column(name = "address")
     private String address;
     
+    @BankSortCode
     @Column(name = "sort_code")
     private String sortcode;
     
-    @Column(name = "iban")
+    @Iban
+    @Column(name = "iban", unique = true)
     private String iban;
     
     @Column(name = "contact_number")

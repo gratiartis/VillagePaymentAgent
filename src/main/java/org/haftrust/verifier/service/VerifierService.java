@@ -86,12 +86,7 @@ public interface VerifierService {
             java.sql.Date sqlIssueDate,
             java.sql.Date sqlExpiryDate);
 
-    public void setBankDetails(String strAccountNumber,
-            String strBankName,
-            String strBankContactNumber,
-            String strBankAddress,
-            String strBankSortCode,
-            String strBankIban);
+    public void setBankDetails(Bank bank);
 
     public void setReference1Details(String strReference1Title,
             String strReference1FullName,

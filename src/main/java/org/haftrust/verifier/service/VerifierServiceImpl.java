@@ -619,18 +619,8 @@ public class VerifierServiceImpl implements VerifierService {
         identityDocument.setExpiryDate(sqlExpiryDate);
     }
 
-    public void setBankDetails(String strAccountNumber,
-                               String strBankName,
-                               String strBankContactNumber,
-                               String strBankAddress,
-                               String strBankSortCode,
-                               String strBankIban) {
-        bank.setAccountNumber(strAccountNumber);
-        bank.setBankName(strBankName);
-        bank.setContactNumber(strBankContactNumber);
-        bank.setAddress(strBankAddress);
-        bank.setSortcode(strBankSortCode);
-        bank.setIban(strBankIban);
+    public void setBankDetails(Bank bank) {
+        this.bank = bank;
     }
 
     public void setReference1Details(String strReference1Title,

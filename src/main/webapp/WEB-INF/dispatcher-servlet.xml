@@ -32,10 +32,6 @@
           p:prefix="/WEB-INF/jsp/"
           p:suffix=".jsp" />
 
-<bean class="org.haftrust.verifier.validator.PreRegisterVerifierValidator" >
-    <property name="verifierService" ref="verifierService"/>
-</bean>
-
   <bean name="verifyVerifierController" class="org.haftrust.verifier.controller.VerifyVerifierController">
     <property name="pages">
         <list>
@@ -67,7 +63,6 @@
   </bean>
   <bean id="selectCountryValidator" class="org.haftrust.verifier.validator.SelectCountryValidator"/>
   <bean id="verifierValidator" class="org.haftrust.verifier.validator.VerifierValidator"/>
-  <bean id="bankValidator" class="org.haftrust.verifier.validator.BankValidator"/>
   <bean id="reference1Validator" class="org.haftrust.verifier.validator.Reference1Validator"/>
   <bean id="reference2Validator" class="org.haftrust.verifier.validator.Reference2Validator"/>
   <bean id="identityDocumentValidator" class="org.haftrust.verifier.validator.IdentityDocumentValidator"/>

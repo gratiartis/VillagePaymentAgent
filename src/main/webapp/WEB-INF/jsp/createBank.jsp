@@ -67,6 +67,9 @@
                        <td><form:errors path="bankIban" cssClass="error"/></td>
                    </tr>
                    <tr>
+                       <td colspan="3"><form:errors cssClass="error" /></td>
+                   </tr>
+                   <tr>
                        <td align="right"><input type="reset" value="Reset"/></td>
                        <td>
                            <input type="submit" value="Cancel" name="_cancel"/>

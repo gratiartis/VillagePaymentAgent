@@ -1,7 +1,6 @@
 package org.haftrust.verifier.controller;
 
 import org.haftrust.verifier.service.VerifierService;
-import org.haftrust.verifier.validator.PreRegisterVerifierValidator;
 import org.haftrust.verifier.view.PreRegisterVerifierBean;
 import org.junit.Test;
 import org.springframework.validation.BindingResult;
@@ -11,14 +10,12 @@ import java.util.Random;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PreRegisterVerifierControllerTest {
 
-    private final PreRegisterVerifierValidator validator = mock(PreRegisterVerifierValidator.class);
     private final VerifierService verifier = mock(VerifierService.class);
-    private final PreRegisterVerifierController subject = new PreRegisterVerifierController(validator, verifier);
+    private final PreRegisterVerifierController subject = new PreRegisterVerifierController(verifier);
 
     @Test
     public void onSubmitShouldRedirectToBackToFormIfValidationFailure() throws Exception {
@@ -28,8 +25,6 @@ public class PreRegisterVerifierControllerTest {
         when(bindingResult.hasErrors()).thenReturn(true);
 
         assertEquals(PreRegisterVerifierController.FORM_JSP_PAGE, subject.onSubmit(command, bindingResult));
-
-        verify(validator).validate(command, bindingResult);
     }
 
     @Test
@@ -51,7 +46,5 @@ public class PreRegisterVerifierControllerTest {
         assertEquals(PreRegisterVerifierController.RESULT_JSP_PAGE, subject.onSubmit(command, bindingResult));
 
         assertEquals(idVerifier, command.getIdVerifier());
-
-        verify(validator).validate(command, bindingResult);
     }
 }

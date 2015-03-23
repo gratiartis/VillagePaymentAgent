@@ -6,10 +6,12 @@ package org.haftrust.verifier.view;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.haftrust.verifier.model.Country;
 import org.haftrust.verifier.model.Device;
 import org.haftrust.verifier.model.Region;
 import org.haftrust.verifier.model.Verifier;
+import org.hibernate.validator.constraints.Email;
 
 /**
  *
@@ -31,6 +33,7 @@ public class AllocateDeviceBean {
     private String middleName;
     private String lastName;
     private String dob;
+    @Email
     private String email;
 
     private long imei;

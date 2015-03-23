@@ -7,6 +7,11 @@ package org.haftrust.verifier.view;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 import org.haftrust.verifier.model.Address;
 import org.haftrust.verifier.model.Bank;
 import org.haftrust.verifier.model.Country;
@@ -16,6 +21,12 @@ import org.haftrust.verifier.model.Image;
 import org.haftrust.verifier.model.Reference;
 import org.haftrust.verifier.model.Region;
 import org.haftrust.verifier.model.Verifier;
+import org.haftrust.verifier.validation.constraint.BankAccountNumber;
+import org.haftrust.verifier.validation.constraint.BankSortCode;
+import org.haftrust.verifier.validation.constraint.Iban;
+import org.haftrust.verifier.validation.constraint.Password;
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,9 +56,16 @@ public class RegisterVerifierBean {
     private String gender;
     private String dob;
     private java.sql.Date sqlDob;
+    
+    @NotEmpty @Size(max = 45) @Email
     private String email;
+    
     private String telephoneNumber;
+    
+    // TODO Remove max when BCrypt hashing is in place.
+    @NotEmpty @Size(min = 6, max = 45) @Password
     private String password;
+    
     private String educationType;
     private String educationLevel;
     private Verifier verifier;
@@ -83,11 +101,14 @@ public class RegisterVerifierBean {
     private String reference2Address;
     private Reference reference2;
 
+    @BankAccountNumber
     private String bankAccountNumber;
     private String bankName;
     private String bankContactNumber;
     private String bankAddress;
+    @BankSortCode
     private String bankSortCode;
+    @Iban
     private String bankIban;
     private Bank bank;
 

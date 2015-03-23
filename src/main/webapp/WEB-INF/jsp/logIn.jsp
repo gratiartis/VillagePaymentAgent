@@ -25,7 +25,7 @@
        <p align="center">
             <b>Enter your LogIn details</b>
         </p>
-       <form:form commandName="rvBean" method="post">
+       <form:form commandName="loginFormBean" method="post">
            <table border="0" align="center">
                <tbody>
                    <tr>
@@ -37,6 +37,9 @@
                        <td>Password : </td>
                        <td><form:password path="password"/></td>
                        <td><form:errors path="password" cssClass="error"/></td>
+                   </tr>
+                   <tr>
+                       <td colspan="3"><form:errors cssClass="error" /></td>
                    </tr>
                    <tr>
                       <td align="right"><input type="reset" value="Reset"/></td>

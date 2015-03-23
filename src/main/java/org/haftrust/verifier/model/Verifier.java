@@ -15,6 +15,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.Size;
 
 import org.haftrust.verifier.model.enums.EducationLevel;
 import org.haftrust.verifier.model.enums.EducationType;
@@ -24,6 +25,9 @@ import org.haftrust.verifier.model.enums.converters.EducationLevelConverter;
 import org.haftrust.verifier.model.enums.converters.EducationTypeConverter;
 import org.haftrust.verifier.model.enums.converters.EmploymentStatusConverter;
 import org.haftrust.verifier.model.enums.converters.VerificationStatusConverter;
+import org.haftrust.verifier.validation.constraint.Password;
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotEmpty;
 
 /**
  *
@@ -53,12 +57,14 @@ public class Verifier implements java.io.Serializable {
     @Column(name = "dob")
     private Date dob;
     
-    @Column(name = "email", length = 45, nullable = false)
+    @NotEmpty @Size(max = 45) @Email
+    @Column(name = "email", unique = true, length = 45, nullable = false)
     private String email;
     
     @Column(name = "telephone_number", length = 25)
     private String telephoneNumber;
     
+    @NotEmpty @Password
     @Column(name = "password", length = 45, nullable = false)
     private String password;
     

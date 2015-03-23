@@ -7,14 +7,15 @@ import org.haftrust.verifier.model.IdentityDocument;
 import org.haftrust.verifier.model.Reference;
 import org.haftrust.verifier.model.Verifier;
 import org.haftrust.verifier.service.VerifierService;
-import org.haftrust.verifier.validator.BankValidator;
 import org.haftrust.verifier.validator.IdentityDocumentValidator;
 import org.haftrust.verifier.validator.LogInValidator;
 import org.haftrust.verifier.validator.Reference1Validator;
 import org.haftrust.verifier.validator.Reference2Validator;
 import org.haftrust.verifier.validator.SelectCountryValidator;
 import org.haftrust.verifier.validator.VerifierValidator;
+import org.haftrust.verifier.view.LoginFormBean;
 import org.haftrust.verifier.view.RegisterVerifierBean;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +24,15 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+
+import javax.validation.Valid;
 
 @Controller
 @RequestMapping("registerVerifier.htm")
@@ -40,7 +44,6 @@ public class RegisterController {
     private final VerifierService verifierService;
     private final LogInValidator logInValidator;
     private final SelectCountryValidator selectCountryValidator;
-    private final BankValidator bankValidator;
     private final Reference1Validator reference1Validator;
     private final VerifierValidator verifierValidator;
     private final IdentityDocumentValidator identityDocumentValidator;
@@ -50,7 +53,6 @@ public class RegisterController {
     public RegisterController(final VerifierService verifierService,
                               final LogInValidator logInValidator,
                               final SelectCountryValidator selectCountryValidator,
-                              final BankValidator bankValidator,
                               final Reference1Validator reference1Validator,
                               final VerifierValidator verifierValidator,
                               final IdentityDocumentValidator identityDocumentValidator,
@@ -58,27 +60,44 @@ public class RegisterController {
         this.verifierService = verifierService;
         this.logInValidator = logInValidator;
         this.selectCountryValidator = selectCountryValidator;
-        this.bankValidator = bankValidator;
         this.reference1Validator = reference1Validator;
         this.verifierValidator = verifierValidator;
         this.identityDocumentValidator = identityDocumentValidator;
         this.reference2Validator = reference2Validator;
     }
 
+    @ModelAttribute("loginFormBean")
+    public LoginFormBean loginFormBean() {
+        return new LoginFormBean();
+    }
+    
     @ModelAttribute("rvBean")
     public RegisterVerifierBean formBean() {
         return new RegisterVerifierBean();
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public String login(@ModelAttribute("rvBean") RegisterVerifierBean rvBean) {
+    public String displayLoginForm(@ModelAttribute("loginFormBean") LoginFormBean loginFormBean) {
         return "logIn";
     }
 
     @RequestMapping(method = RequestMethod.POST, params = "_target1")
-    public ModelAndView countrySelection(@ModelAttribute("rvBean") RegisterVerifierBean rvBean, final BindingResult result) {
-        logInValidator.validate(rvBean, result);
+    public ModelAndView loginAndDisplayCountrySelection(
+            @Valid @ModelAttribute("loginFormBean") LoginFormBean loginFormBean,
+            final BindingResult result) {
 
+        if (result.hasErrors()) {
+            LOG.debug("Login form failed validation: " + loginFormBean);
+            return new ModelAndView("logIn");
+        }
+        
+        Verifier verifier = this.verifierService.logInVerifier(loginFormBean.getEmail(), loginFormBean.getPassword());
+        
+        if (verifier == null) {
+            LOG.debug("Verifier was not found for: " + loginFormBean);
+            result.reject("validation.constraints.auth.login", "The Email or Password entered is incorrect.");
+        }
+        
         if (result.hasErrors()) {
             return new ModelAndView("logIn");
         }
@@ -87,7 +106,9 @@ public class RegisterController {
         dataMap.put("countryList", this.verifierService.getCountryList());
         LOG.debug("------------------------ controller register verifier reference data country list");
 
-        Verifier verifier = this.verifierService.logInVerifier(rvBean.getEmail(), rvBean.getPassword());
+        RegisterVerifierBean rvBean = formBean();
+        dataMap.put("rvBean", rvBean);
+        
         rvBean.setVerifier(verifier);
         rvBean.setFirstName(verifier.getFirstName());
         LOG.debug("----------------------- rvBean frst name: {}", rvBean.getFirstName());
@@ -291,19 +312,16 @@ public class RegisterController {
     }
 
     @RequestMapping(method = RequestMethod.POST, params = "_target7")
-    public ModelAndView createReference(@ModelAttribute("rvBean") RegisterVerifierBean rvBean, final BindingResult result) {
-        bankValidator.validate(rvBean, result);
-
+    public ModelAndView createBankAndDisplayCreateReferenceForm(
+            @Valid @ModelAttribute("rvBean") RegisterVerifierBean rvBean, 
+            final BindingResult result) {
+        
         if (result.hasErrors()) {
+            LOG.debug("Create bank form failed validation: " + rvBean);
             return new ModelAndView("createBank");
         }
 
-        this.verifierService.setBankDetails(rvBean.getBankAccountNumber(),
-                rvBean.getBankName(),
-                rvBean.getBankContactNumber(),
-                rvBean.getBankAddress(),
-                rvBean.getBankSortCode(),
-                rvBean.getBankIban());
+        this.verifierService.setBankDetails(bank(rvBean));
         rvBean.setPage(7);
 
         HashMap<String, Object> dataMap = new HashMap<>();
@@ -444,12 +462,7 @@ public class RegisterController {
                     rvBean.getSqlIdentityDocumentIssueDate(),
                     rvBean.getSqlIdentityDocumentExpiryDate());
 
-            this.verifierService.setBankDetails(rvBean.getBankAccountNumber(),
-                    rvBean.getBankName(),
-                    rvBean.getBankContactNumber(),
-                    rvBean.getBankAddress(),
-                    rvBean.getBankSortCode(),
-                    rvBean.getBankIban());
+            this.verifierService.setBankDetails(bank(rvBean));
 
             this.verifierService.save(rvBean.getPage());
 
@@ -483,12 +496,7 @@ public class RegisterController {
                     rvBean.getSqlIdentityDocumentIssueDate(),
                     rvBean.getSqlIdentityDocumentExpiryDate());
 
-            this.verifierService.setBankDetails(rvBean.getBankAccountNumber(),
-                    rvBean.getBankName(),
-                    rvBean.getBankContactNumber(),
-                    rvBean.getBankAddress(),
-                    rvBean.getBankSortCode(),
-                    rvBean.getBankIban());
+            this.verifierService.setBankDetails(bank(rvBean));
 
             this.verifierService.setReference1Details(rvBean.getReference1Title(),
                     rvBean.getReference1FullName(),
@@ -531,12 +539,7 @@ public class RegisterController {
                     rvBean.getSqlIdentityDocumentIssueDate(),
                     rvBean.getSqlIdentityDocumentExpiryDate());
 
-            this.verifierService.setBankDetails(rvBean.getBankAccountNumber(),
-                    rvBean.getBankName(),
-                    rvBean.getBankContactNumber(),
-                    rvBean.getBankAddress(),
-                    rvBean.getBankSortCode(),
-                    rvBean.getBankIban());
+            this.verifierService.setBankDetails(bank(rvBean));
 
             this.verifierService.setReference1Details(rvBean.getReference1Title(),
                     rvBean.getReference1FullName(),
@@ -649,5 +652,17 @@ public class RegisterController {
         sessionStatus.setComplete();
 
         return "cancelConfirmation";
+    }
+    
+    private Bank bank(RegisterVerifierBean rvBean) {
+        Bank bank = new Bank();
+        bank.setAccountNumber(rvBean.getBankAccountNumber());
+        bank.setAddress(rvBean.getBankAddress());
+        bank.setBankName(rvBean.getBankName());
+        bank.setContactNumber(rvBean.getBankContactNumber());
+        bank.setEmployeeType(null);
+        bank.setIban(rvBean.getBankIban());
+        bank.setSortcode(rvBean.getBankSortCode());
+        return bank;
     }
 }
