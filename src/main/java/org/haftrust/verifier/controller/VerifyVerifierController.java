@@ -166,7 +166,7 @@ public class VerifyVerifierController extends AbstractWizardFormController {
             vvBean.setFirstName(verifier.getFirstName());
             vvBean.setMiddleName(verifier.getMiddleName());
             vvBean.setLastName(verifier.getLastName());
-            vvBean.setGender(verifier.getGender().toUpperCase());
+            vvBean.setGender(verifier.getGender().getValue().toUpperCase());
             if (verifier.getDob() != null) {
                 String date;
                 date = verifier.getDob().toString();

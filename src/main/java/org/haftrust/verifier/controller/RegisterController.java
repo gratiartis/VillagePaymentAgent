@@ -1,69 +1,79 @@
-
 package org.haftrust.verifier.controller;
 
+import org.haftrust.verifier.dao.CountryDAO;
+import org.haftrust.verifier.dao.DistrictDAO;
+import org.haftrust.verifier.dao.IdentityDocumentDAO;
+import org.haftrust.verifier.dao.RegionDAO;
+import org.haftrust.verifier.dao.VerifierDAO;
 import org.haftrust.verifier.model.Address;
 import org.haftrust.verifier.model.Bank;
+import org.haftrust.verifier.model.Country;
 import org.haftrust.verifier.model.IdentityDocument;
 import org.haftrust.verifier.model.Reference;
+import org.haftrust.verifier.model.Region;
 import org.haftrust.verifier.model.Verifier;
+import org.haftrust.verifier.model.enums.EducationLevel;
+import org.haftrust.verifier.model.enums.EducationType;
+import org.haftrust.verifier.model.enums.EmployeeType;
+import org.haftrust.verifier.model.enums.Gender;
 import org.haftrust.verifier.service.VerifierService;
-import org.haftrust.verifier.validator.IdentityDocumentValidator;
-import org.haftrust.verifier.validator.LogInValidator;
-import org.haftrust.verifier.validator.Reference1Validator;
-import org.haftrust.verifier.validator.Reference2Validator;
-import org.haftrust.verifier.validator.SelectCountryValidator;
-import org.haftrust.verifier.validator.VerifierValidator;
+import org.haftrust.verifier.view.IdentityDocumentFormBean;
 import org.haftrust.verifier.view.LoginFormBean;
+import org.haftrust.verifier.view.ReferenceFormBean;
 import org.haftrust.verifier.view.RegisterVerifierBean;
-import org.hibernate.validator.constraints.NotEmpty;
+import org.haftrust.verifier.view.SelectCountryFormBean;
+import org.haftrust.verifier.view.SelectDistrictFormBean;
+import org.haftrust.verifier.view.SelectRegionFormBean;
+import org.haftrust.verifier.view.VerifierDetailsFormBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 
 import javax.validation.Valid;
 
 @Controller
 @RequestMapping("registerVerifier.htm")
-@SessionAttributes("rvBean")
+@SessionAttributes({ "verifier", "rvBean" })
+@Scope("session")
 public class RegisterController {
 
     private static final Logger LOG = LoggerFactory.getLogger(RegisterController.class);
 
     private final VerifierService verifierService;
-    private final LogInValidator logInValidator;
-    private final SelectCountryValidator selectCountryValidator;
-    private final Reference1Validator reference1Validator;
-    private final VerifierValidator verifierValidator;
-    private final IdentityDocumentValidator identityDocumentValidator;
-    private final Reference2Validator reference2Validator;
-
+    private final VerifierDAO verifierDao;
+    private final CountryDAO countryDao;
+    private final RegionDAO regionDao;
+    private final DistrictDAO districtDao;
+    private final IdentityDocumentDAO identityDocumentDao;
+    
+    private Integer verifierId;
+    
     @Autowired
     public RegisterController(final VerifierService verifierService,
-                              final LogInValidator logInValidator,
-                              final SelectCountryValidator selectCountryValidator,
-                              final Reference1Validator reference1Validator,
-                              final VerifierValidator verifierValidator,
-                              final IdentityDocumentValidator identityDocumentValidator,
-                              final Reference2Validator reference2Validator) {
+                              final VerifierDAO verifierDao,
+                              final CountryDAO countryDao,
+                              final RegionDAO regionDao,
+                              final DistrictDAO districtDao,
+                              final IdentityDocumentDAO identityDocumentDao) {
         this.verifierService = verifierService;
-        this.logInValidator = logInValidator;
-        this.selectCountryValidator = selectCountryValidator;
-        this.reference1Validator = reference1Validator;
-        this.verifierValidator = verifierValidator;
-        this.identityDocumentValidator = identityDocumentValidator;
-        this.reference2Validator = reference2Validator;
+        this.verifierDao = verifierDao;
+        this.countryDao = countryDao;
+        this.regionDao = regionDao;
+        this.districtDao = districtDao;
+        this.identityDocumentDao = identityDocumentDao;
     }
 
     @ModelAttribute("loginFormBean")
@@ -71,20 +81,64 @@ public class RegisterController {
         return new LoginFormBean();
     }
     
-    @ModelAttribute("rvBean")
-    public RegisterVerifierBean formBean() {
-        return new RegisterVerifierBean();
+    @ModelAttribute("selectCountryFormBean")
+    public SelectCountryFormBean selectCountryFormBean() {
+        Verifier verifier = verifierDao.findOne(verifierId);
+        if (verifier.getAddress() == null) {
+            return new SelectCountryFormBean();
+        } else {
+            return new SelectCountryFormBean(verifier.getAddress().getCountry().getId());
+        }
+    }
+    
+    @ModelAttribute("selectRegionFormBean")
+    public SelectRegionFormBean selectRegionFormBean() {
+        Verifier verifier = verifierDao.findOne(verifierId);
+        if (verifier.getAddress() == null) {
+            return new SelectRegionFormBean();
+        } else {
+            return new SelectRegionFormBean(verifier.getAddress().getRegion().getId());
+        }
+    }
+    
+    @ModelAttribute("selectDistrictFormBean")
+    public SelectDistrictFormBean selectDistrictFormBean() {
+        Verifier verifier = verifierDao.findOne(verifierId);
+        if (verifier.getAddress() == null) {
+            return new SelectDistrictFormBean();
+        } else {
+            return new SelectDistrictFormBean(verifier.getAddress().getDistrict().getId());
+        }
+    }
+    
+    @ModelAttribute("verifierDetailsFormBean")
+    public VerifierDetailsFormBean verifierDetailsFormBean() {
+        Verifier verifier = verifierDao.findOne(verifierId);
+        return new VerifierDetailsFormBean(verifier);
+    }
+    
+    @ModelAttribute("identityDocumentFormBean")
+    public IdentityDocumentFormBean identityDocumentFormBean() {
+        Verifier verifier = verifierDao.findOne(verifierId);
+        if (verifier.getIdentity() == null) {
+            return new IdentityDocumentFormBean();
+        } else {
+            return new IdentityDocumentFormBean(verifier.getIdentity());
+        }
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public String displayLoginForm(@ModelAttribute("loginFormBean") LoginFormBean loginFormBean) {
+    public String displayLoginForm(
+            @ModelAttribute("loginFormBean") LoginFormBean loginFormBean) {
+        
         return "logIn";
     }
 
-    @RequestMapping(method = RequestMethod.POST, params = "_target1")
+    @RequestMapping(method = RequestMethod.POST, params = "login")
     public ModelAndView loginAndDisplayCountrySelection(
             @Valid @ModelAttribute("loginFormBean") LoginFormBean loginFormBean,
-            final BindingResult result) {
+            BindingResult result,
+            @ModelAttribute("selectCountryFormBean") SelectCountryFormBean selectCountryFormBean) {
 
         if (result.hasErrors()) {
             LOG.debug("Login form failed validation: " + loginFormBean);
@@ -101,151 +155,101 @@ public class RegisterController {
         if (result.hasErrors()) {
             return new ModelAndView("logIn");
         }
-
-        HashMap<String, Object> dataMap = new HashMap<>();
-        dataMap.put("countryList", this.verifierService.getCountryList());
-        LOG.debug("------------------------ controller register verifier reference data country list");
-
-        RegisterVerifierBean rvBean = formBean();
-        dataMap.put("rvBean", rvBean);
         
-        rvBean.setVerifier(verifier);
-        rvBean.setFirstName(verifier.getFirstName());
-        LOG.debug("----------------------- rvBean frst name: {}", rvBean.getFirstName());
-        rvBean.setMiddleName(verifier.getMiddleName());
-        rvBean.setLastName(verifier.getLastName());
-        rvBean.setGender(verifier.getGender());
-        if (verifier.getDob() != null) {
-            String date = verifier.getDob().toString();
-            String[] strSplit = date.split("-");
-            int day = Integer.parseInt(strSplit[2]);
-            int month = Integer.parseInt(strSplit[1]);
-            int year = Integer.parseInt(strSplit[0]);
-            date = Integer.toString(day) + "-" + Integer.toString(month) + "-" + Integer.toString(year);
+        // Set the verifier, which is session scoped, so we can track the current user.
+        // TODO Remove when Spring Security implemented, as we can get current user from context.
+        this.verifierId = verifier.getId();
 
-            rvBean.setDob(date);
-        }
-        rvBean.setEmail(verifier.getEmail());
-        LOG.debug("--------------------register verifier controller post process page verifier email: {}", rvBean.getEmail());
-        rvBean.setTelephoneNumber(verifier.getTelephoneNumber());
-        rvBean.setEducationType(verifier.getEducationType() == null ? null : verifier.getEducationType().value);
-        rvBean.setEducationLevel(verifier.getEducationLevel() == null ? null : verifier.getEducationLevel().value);
-        rvBean.setIdVerifier(verifier.getId());
-        if (verifier.getImage() != null) {
-            rvBean.setImage(verifier.getImage());
-        }
-        LOG.debug("---------------- login verifier id: {}" + rvBean.getVerifier().getId());
-
-        Address address = this.verifierService.getAddress();
-        rvBean.setStreet(address.getStreet());
-        LOG.debug("----------------------- rvBean street: {}", rvBean.getStreet());
-        rvBean.setVillage(address.getVillage());
-        rvBean.setPostcode(address.getPostcode());
-        rvBean.setTown(address.getTown());
-        rvBean.setCity(address.getCity());
-        if (address.getDistrict() != null) {
-            rvBean.setDistrict(address.getDistrict());
-            rvBean.setIdDistrict(address.getDistrict().getId());
-        }
-        if (address.getRegion() != null) {
-            rvBean.setRegion(address.getRegion());
-            rvBean.setIdRegion(address.getRegion().getId());
-        }
-        if (address.getCountry() != null) {
-            rvBean.setCountry(address.getCountry());
-            rvBean.setIdCountry(address.getCountry().getId());
-        }
-
-        Bank bank = this.verifierService.getBank();
-        rvBean.setBankAccountNumber(bank.getAccountNumber());
-        rvBean.setBankName(bank.getBankName());
-        LOG.debug("----------------------- rvBean bank name: {}", rvBean.getBankName());
-        rvBean.setBankContactNumber(bank.getContactNumber());
-        rvBean.setBankAddress(bank.getAddress());
-        rvBean.setBankSortCode(bank.getSortcode());
-        rvBean.setBankIban(bank.getIban());
-
-        Reference reference1 = this.verifierService.getReference1();
-        rvBean.setReference1Title(reference1.getTitle());
-        rvBean.setReference1FullName(reference1.getFullName());
-        LOG.debug("----------------------- rvBean reference 1 full name: {}", rvBean.getReference1FullName());
-        rvBean.setReference1OrganisationName(reference1.getOrganisationName());
-        rvBean.setReference1Designation(reference1.getDesignation());
-        rvBean.setReference1ContactNumber(reference1.getContactNumber());
-        rvBean.setReference1Email(reference1.getEmail());
-        rvBean.setReference1Address(reference1.getAddress());
-
-        Reference reference2 = this.verifierService.getReference2();
-        rvBean.setReference2Title(reference2.getTitle());
-        rvBean.setReference2FullName(reference2.getFullName());
-        LOG.debug("----------------------- rvBean reference 2 full name: {}", rvBean.getReference2FullName());
-        rvBean.setReference2OrganisationName(reference2.getOrganisationName());
-        rvBean.setReference2Designation(reference2.getDesignation());
-        rvBean.setReference2ContactNumber(reference2.getContactNumber());
-        rvBean.setReference2Email(reference2.getEmail());
-        rvBean.setReference2Address(reference2.getAddress());
-
-        IdentityDocument id = this.verifierService.getIdentityDocument();
-        rvBean.setIdentityDocumentType(id.getType() == null ? null : id.getType().value);
-        rvBean.setIdentityDocumentNumber(id.getNumber());
-        if (id.getIssueDate() != null) {
-            String date;
-            date = id.getIssueDate().toString();
-            String[] strSplit = date.split("-");
-            int day = Integer.parseInt(strSplit[2]);
-            int month = Integer.parseInt(strSplit[1]);
-            int year = Integer.parseInt(strSplit[0]);
-            date = Integer.toString(day) + "-" + Integer.toString(month) + "-" + Integer.toString(year);
-
-            rvBean.setIdentityDocumentIssueDate(date);
-        }
-        if (id.getExpiryDate() != null) {
-            String date;
-            date = id.getExpiryDate().toString();
-            String[] strSplit = date.split("-");
-            int day = Integer.parseInt(strSplit[2]);
-            int month = Integer.parseInt(strSplit[1]);
-            int year = Integer.parseInt(strSplit[0]);
-            date = Integer.toString(day) + "-" + Integer.toString(month) + "-" + Integer.toString(year);
-
-            rvBean.setIdentityDocumentExpiryDate(date);
-        }
-
+        return displayCountrySelection(selectCountryFormBean);
+    }
+    
+    public ModelAndView displayCountrySelection(
+            @ModelAttribute("selectCountryFormBean") SelectCountryFormBean selectCountryFormBean) {
+        
+        HashMap<String, Object> dataMap = new HashMap<>();
+        dataMap.put("countryList", countryDao.findAll());
+        
         return new ModelAndView("selectCountry", dataMap);
     }
 
-    @RequestMapping(method = RequestMethod.POST, params = "_target2")
-    public ModelAndView regionSelection(@ModelAttribute("rvBean") RegisterVerifierBean rvBean,
-                                        final BindingResult result) {
-        selectCountryValidator.validate(rvBean, result);
-
+    @RequestMapping(method = RequestMethod.POST, params = "selectCountry")
+    public ModelAndView selectCountry(
+            @Valid @ModelAttribute("selectCountryFormBean") SelectCountryFormBean form,
+            final BindingResult result) {
+        
         if (result.hasErrors()) {
-            return new ModelAndView("logIn");
+            return displayCountrySelection(form);
         }
 
-        rvBean.setCountry(this.verifierService.setVerifierCountry(rvBean.getIdCountry()));
+        Country country = countryDao.findOne(form.getCountryId());
+        
+        if (country == null) {
+            result.reject("validation.data.country.notfound", "The country could not be found.");
+            return displayCountrySelection(form);
+        }
+        
+        Verifier verifier = verifierDao.findOne(verifierId);
+        this.verifierService.updateVerifierCountry(verifier, country);
 
+        return displayRegionSelectionForm(selectRegionFormBean(), result);
+    }
+    
+    public ModelAndView displayRegionSelectionForm(
+            @ModelAttribute("selectRegionFormBean") SelectRegionFormBean selectRegionFormBean,
+            BindingResult result) {
+        
+        Verifier verifier = verifierDao.findOne(verifierId);
+        Country country = verifier.getAddress().getCountry();
+        
         HashMap<String, Object> dataMap = new HashMap<>();
-        dataMap.put("regionList", this.verifierService.getRegionList());
+        dataMap.put("regionList", regionDao.findByCountry(country));
 
         return new ModelAndView("selectRegion", dataMap);
     }
 
-    @RequestMapping(method = RequestMethod.POST, params = "_target3")
-    public ModelAndView districtSelection(@ModelAttribute("rvBean") RegisterVerifierBean rvBean) {
-        rvBean.setRegion(this.verifierService.setVerifierRegion(rvBean.getIdRegion()));
+    @RequestMapping(method = RequestMethod.POST, params = "selectRegion")
+    public ModelAndView selectRegion(
+            @Valid @ModelAttribute("selectRegionFormBean") SelectRegionFormBean form,
+            BindingResult result) {
+        
+        if (result.hasErrors()) {
+            return displayRegionSelectionForm(form, result);
+        }
+        
+        Region region = regionDao.findOne(form.getRegionId());
+        
+        if (region == null) {
+            result.reject("validation.data.region.notfound", "The region could not be found.");
+            return displayRegionSelectionForm(form, result);
+        }
+        
+        Verifier verifier = verifierDao.findOne(verifierId);
+        this.verifierService.updateVerifierRegion(verifier, region);
 
+        return displayDistrictSelectionForm(selectDistrictFormBean());
+    }
+    
+    @RequestMapping(method = RequestMethod.POST, params = "selectRegion")
+    public ModelAndView displayDistrictSelectionForm(
+            @ModelAttribute("selectDistrictFormBean") SelectDistrictFormBean form) {
+        
+        Verifier verifier = verifierDao.findOne(verifierId);
+        
         HashMap<String, Object> dataMap = new HashMap<>();
-        dataMap.put("districtList", this.verifierService.getDistrictList());
+        dataMap.put("districtList", districtDao.findByRegion(verifier.getAddress().getRegion()));
 
         return new ModelAndView("selectDistrict", dataMap);
     }
 
-    @RequestMapping(method = RequestMethod.POST, params = "_target4")
-    public ModelAndView createVerifier(@ModelAttribute("rvBean") RegisterVerifierBean rvBean) {
-        rvBean.setDistrict(this.verifierService.setVerifierDistrict(rvBean.getIdDistrict()));
-        rvBean.setPage(4);
-
+    @RequestMapping(method = RequestMethod.POST, params = "selectDistrict")
+    public ModelAndView updateDistrictAndDisplayVerifierDetailsForm(
+            @Valid @ModelAttribute("selectDistrictFormBean") SelectDistrictFormBean form,
+            BindingResult result) {
+        
+        if (result.hasErrors()) {
+            return displayDistrictSelectionForm(form);
+        }
+        
         HashMap<String, Object> dataMap = new HashMap<>();
         dataMap.put("genderList", this.verifierService.getGenderList());
         dataMap.put("educationLevelList", this.verifierService.getEducationLevelList());
@@ -254,64 +258,84 @@ public class RegisterController {
         return new ModelAndView("createVerifier", dataMap);
     }
 
-    @RequestMapping(method = RequestMethod.POST, params = "_target5")
-    public ModelAndView createIdentityDocument(@ModelAttribute("rvBean") RegisterVerifierBean rvBean,
-                                               BindingResult result) {
-        verifierValidator.validate(rvBean, result);
-
+    @RequestMapping(method = RequestMethod.POST, params = "createVerifier")
+    public ModelAndView updateVerifierDetailsAndDisplayIdentityDocumentForm(
+            @ModelAttribute("verifierDetailsFormBean") VerifierDetailsFormBean form,
+            BindingResult result) {
+        
         if (result.hasErrors()) {
             return new ModelAndView("createVerifier");
         }
 
-        this.verifierService.setVerifierDetails(rvBean.getFirstName(),
-                rvBean.getMiddleName(),
-                rvBean.getLastName(),
-                rvBean.getGender(),
-                rvBean.getSqlDob(),
-                rvBean.getTelephoneNumber(),
-                rvBean.getEducationLevel(),
-                rvBean.getEducationType());
-
-        this.verifierService.setAddressDetails(rvBean.getStreet(),
-                rvBean.getVillage(),
-                rvBean.getPostcode(),
-                rvBean.getTown(),
-                rvBean.getCity());
-
-        MultipartFile file = rvBean.getFile();
+        Verifier verifier = verifierDao.findOne(this.verifierId);
+        verifier.setFirstName(form.getFirstName());
+        verifier.setMiddleName(form.getMiddleName());
+        verifier.setLastName(form.getLastName());
+        verifier.setGender(Gender.valueOfValue(form.getGender()));
+        verifier.setTelephoneNumber(form.getTelephoneNumber());
+        verifier.setDob(LocalDate.parse(form.getDob()));
+        verifier.setEducationLevel(EducationLevel.valueOfValue(form.getEducationLevel()));
+        verifier.setEducationType(EducationType.valueOfValue(form.getEducationType()));
+        verifierService.updateVerifierDetails(verifier);
+        
+        LOG.debug("Updated verifier details: " + verifier);
+        
+        Address address = verifier.getAddress(); 
+        address.setStreet(form.getStreet());
+        address.setVillage(form.getVillage());
+        address.setTown(form.getTown());
+        address.setCity(form.getCity());
+        address.setPostcode(form.getPostcode());
+        
+        LOG.debug("Updated verifier address: " + address);
+        
+        verifierService.updateVerifierAddress(verifier, address);
+        
+        MultipartFile file = form.getFile();
         if (file == null) {
             LOG.debug("--------------------------- register verifier controller file is empty");
         } else {
             LOG.debug("--------------------------- register verifier controller file: {}", file);
         }
-        this.verifierService.setImageDetails(rvBean.getFile());
-        rvBean.setImage(this.verifierService.getImage());
-        rvBean.setPage(5);
+        verifierService.updateVerifierImageDetails(verifier, form.getImage());
 
         HashMap<String, Object> dataMap = new HashMap<>();
         dataMap.put("identityDocumentTypeList", this.verifierService.getIdentityDocumentTypeList());
 
+        return displayIdentityDocumentForm(verifierDetailsFormBean());
+    }
+    
+    @RequestMapping(method = RequestMethod.POST, params = "createVerifier")
+    public ModelAndView displayIdentityDocumentForm(
+            @ModelAttribute("verifierDetailsFormBean") VerifierDetailsFormBean form) {
+        
+        HashMap<String, Object> dataMap = new HashMap<>();
+        dataMap.put("identityDocumentTypeList", identityDocumentDao.findAll());
+
         return new ModelAndView("createIdentityDocument", dataMap);
     }
 
-    @RequestMapping(method = RequestMethod.POST, params = "_target6")
-    public String createBank(@ModelAttribute("rvBean") RegisterVerifierBean rvBean, final BindingResult result) {
-        identityDocumentValidator.validate(rvBean, result);
+    @RequestMapping(method = RequestMethod.POST, params = "createIdentityDocument")
+    public String createBank(
+            @ModelAttribute("identityDocumentFormBean") IdentityDocumentFormBean form, 
+            BindingResult result) {
 
         if (result.hasErrors()) {
             return "createIdentityDocument";
         }
 
-        this.verifierService.setIdentityDocumentDetails(rvBean.getIdentityDocumentType(),
-                rvBean.getIdentityDocumentNumber(),
-                rvBean.getSqlIdentityDocumentIssueDate(),
-                rvBean.getSqlIdentityDocumentExpiryDate());
-        rvBean.setPage(6);
+        IdentityDocument identity = new IdentityDocument(); 
+        identity.setEmployeeType(EmployeeType.VERIFIER);
+        identity.setExpiryDate(LocalDate.parse(form.getExpiryDate()));
+        identity.setIssueDate(LocalDate.parse(form.getIssueDate()));
+
+        Verifier verifier = verifierDao.findOne(this.verifierId);
+        verifierService.updateVerifierIdentityDocument(verifier, identity);
 
         return "createBank";
     }
 
-    @RequestMapping(method = RequestMethod.POST, params = "_target7")
+    @RequestMapping(method = RequestMethod.POST, params = "createBank")
     public ModelAndView createBankAndDisplayCreateReferenceForm(
             @Valid @ModelAttribute("rvBean") RegisterVerifierBean rvBean, 
             final BindingResult result) {
@@ -330,27 +354,59 @@ public class RegisterController {
         return new ModelAndView("createReference", dataMap);
     }
 
-    @RequestMapping(method = RequestMethod.POST, params = "_target10")
-    public ModelAndView createReference2(@ModelAttribute("rvBean") RegisterVerifierBean rvBean, final BindingResult result) {
-        reference1Validator.validate(rvBean, result);
+    @RequestMapping(method = RequestMethod.POST, params = "createReference1")
+    public ModelAndView updateReference1AndDisplayReference2Form(
+            @Valid @ModelAttribute("referenceFormBean") ReferenceFormBean form, 
+            BindingResult result) {
 
         if (result.hasErrors()) {
             return new ModelAndView("createReference");
         }
-
-        this.verifierService.setReference1Details(rvBean.getReference1Title(),
-                rvBean.getReference1FullName(),
-                rvBean.getReference1OrganisationName(),
-                rvBean.getReference1Designation(),
-                rvBean.getReference1ContactNumber(),
-                rvBean.getReference1Email(),
-                rvBean.getReference1Address());
-        rvBean.setPage(10);
+        
+        Reference ref = new Reference();
+        
+        ref.setAddress(form.getAddress());
+        ref.setContactNumber(form.getContactNumber());
+        ref.setDesignation(form.getDesignation());
+        ref.setEmail(form.getEmail());
+        ref.setFullName(form.getFullName());
+        ref.setOrganisationName(form.getOrganisationName());
+        ref.setTitle(form.getTitle());
+        
+        this.verifierService.setReference1Details(verifier, ref);
 
         HashMap<String, Object> dataMap = new HashMap<>();
         dataMap.put("titleList", this.verifierService.getTitleList());
 
         return new ModelAndView("createReference2", dataMap);
+    }
+    
+    @RequestMapping(method = RequestMethod.POST, params = "createReference2")
+    public String finish(
+            @Valid @ModelAttribute("referenceFormBean") ReferenceFormBean form,
+            BindingResult result,
+            SessionStatus sessionStatus) {
+
+        if (result.hasErrors()) {
+            return "createReference2";
+        }
+
+        Reference ref = new Reference();
+        
+        ref.setAddress(form.getAddress());
+        ref.setContactNumber(form.getContactNumber());
+        ref.setDesignation(form.getDesignation());
+        ref.setEmail(form.getEmail());
+        ref.setFullName(form.getFullName());
+        ref.setOrganisationName(form.getOrganisationName());
+        ref.setTitle(form.getTitle());
+        
+        this.verifierService.setReference2Details(verifier, ref);
+
+        LOG.info("finish called");
+        sessionStatus.setComplete();
+
+        return "registerConfirmation";
     }
 
     @RequestMapping(method = RequestMethod.POST, params = "_target11")
@@ -473,100 +529,6 @@ public class RegisterController {
             rvBean.setBank(this.verifierService.getBank());
         }
 
-        if (rvBean.getPage() == 7) {
-            this.verifierService.setVerifierDetails(rvBean.getFirstName(),
-                    rvBean.getMiddleName(),
-                    rvBean.getLastName(),
-                    rvBean.getGender(),
-                    rvBean.getSqlDob(),
-                    rvBean.getTelephoneNumber(),
-                    rvBean.getEducationLevel(),
-                    rvBean.getEducationType());
-
-            this.verifierService.setAddressDetails(rvBean.getStreet(),
-                    rvBean.getVillage(),
-                    rvBean.getPostcode(),
-                    rvBean.getTown(),
-                    rvBean.getCity());
-
-            this.verifierService.setImageDetails(rvBean.getFile());
-
-            this.verifierService.setIdentityDocumentDetails(rvBean.getIdentityDocumentType(),
-                    rvBean.getIdentityDocumentNumber(),
-                    rvBean.getSqlIdentityDocumentIssueDate(),
-                    rvBean.getSqlIdentityDocumentExpiryDate());
-
-            this.verifierService.setBankDetails(bank(rvBean));
-
-            this.verifierService.setReference1Details(rvBean.getReference1Title(),
-                    rvBean.getReference1FullName(),
-                    rvBean.getReference1OrganisationName(),
-                    rvBean.getReference1Designation(),
-                    rvBean.getReference1ContactNumber(),
-                    rvBean.getReference1Email(),
-                    rvBean.getReference1Address());
-
-            this.verifierService.save(rvBean.getPage());
-
-            rvBean.setImage(this.verifierService.getImage());
-            rvBean.setVerifier(this.verifierService.getVerifier());
-            rvBean.setAddress(this.verifierService.getAddress());
-            rvBean.setIdentityDocument(this.verifierService.getIdentityDocument());
-            rvBean.setBank(this.verifierService.getBank());
-            rvBean.setReference1(this.verifierService.getReference1());
-        }
-
-        if (rvBean.getPage() == 10) {
-            this.verifierService.setVerifierDetails(rvBean.getFirstName(),
-                    rvBean.getMiddleName(),
-                    rvBean.getLastName(),
-                    rvBean.getGender(),
-                    rvBean.getSqlDob(),
-                    rvBean.getTelephoneNumber(),
-                    rvBean.getEducationLevel(),
-                    rvBean.getEducationType());
-
-            this.verifierService.setAddressDetails(rvBean.getStreet(),
-                    rvBean.getVillage(),
-                    rvBean.getPostcode(),
-                    rvBean.getTown(),
-                    rvBean.getCity());
-
-            this.verifierService.setImageDetails(rvBean.getFile());
-
-            this.verifierService.setIdentityDocumentDetails(rvBean.getIdentityDocumentType(),
-                    rvBean.getIdentityDocumentNumber(),
-                    rvBean.getSqlIdentityDocumentIssueDate(),
-                    rvBean.getSqlIdentityDocumentExpiryDate());
-
-            this.verifierService.setBankDetails(bank(rvBean));
-
-            this.verifierService.setReference1Details(rvBean.getReference1Title(),
-                    rvBean.getReference1FullName(),
-                    rvBean.getReference1OrganisationName(),
-                    rvBean.getReference1Designation(),
-                    rvBean.getReference1ContactNumber(),
-                    rvBean.getReference1Email(),
-                    rvBean.getReference1Address());
-
-            this.verifierService.setReference2Details(rvBean.getReference2Title(),
-                    rvBean.getReference2FullName(),
-                    rvBean.getReference2OrganisationName(),
-                    rvBean.getReference2Designation(),
-                    rvBean.getReference2ContactNumber(),
-                    rvBean.getReference2Email(),
-                    rvBean.getReference2Address());
-
-            this.verifierService.save(rvBean.getPage());
-
-            rvBean.setImage(this.verifierService.getImage());
-            rvBean.setVerifier(this.verifierService.getVerifier());
-            rvBean.setAddress(this.verifierService.getAddress());
-            rvBean.setIdentityDocument(this.verifierService.getIdentityDocument());
-            rvBean.setBank(this.verifierService.getBank());
-            rvBean.setReference1(this.verifierService.getReference1());
-            rvBean.setReference2(this.verifierService.getReference2());
-        }
         sessionStatus.setComplete();
 
         return "saveConfirmation";
@@ -611,40 +573,6 @@ public class RegisterController {
         }
 
         return "cancelRegister";
-    }
-
-    @RequestMapping(method = RequestMethod.POST, params = "_finish")
-    public String finish(@ModelAttribute("rvBean") RegisterVerifierBean rvBean,
-                         SessionStatus sessionStatus,
-                         BindingResult result) {
-        reference2Validator.validate(rvBean, result);
-
-        if (result.hasErrors()) {
-            return "createReference2";
-        }
-
-        this.verifierService.setReference2Details(rvBean.getReference2Title(),
-                rvBean.getReference2FullName(),
-                rvBean.getReference2OrganisationName(),
-                rvBean.getReference2Designation(),
-                rvBean.getReference2ContactNumber(),
-                rvBean.getReference2Email(),
-                rvBean.getReference2Address());
-
-        Verifier v = this.verifierService.registerVerifier();
-
-        rvBean.setImage(this.verifierService.getImage());
-        rvBean.setVerifier(v);
-        rvBean.setAddress(this.verifierService.getAddress());
-        rvBean.setIdentityDocument(this.verifierService.getIdentityDocument());
-        rvBean.setBank(this.verifierService.getBank());
-        rvBean.setReference1(this.verifierService.getReference1());
-        rvBean.setReference2(this.verifierService.getReference2());
-
-        LOG.info("finish called");
-        sessionStatus.setComplete();
-
-        return "registerConfirmation";
     }
 
     @RequestMapping(method = RequestMethod.POST, params = "_cancel")

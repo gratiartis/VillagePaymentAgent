@@ -43,7 +43,7 @@
                    </tr>
                    <tr>
                       <td align="right"><input type="reset" value="Reset"/></td>
-                      <td colspan="2" align="left"><input type="submit" value="Login" name="_target1"/></td>
+                      <td colspan="2" align="left"><input type="submit" value="Login" name="login"/></td>
                    </tr>
                </tbody>
            </table>

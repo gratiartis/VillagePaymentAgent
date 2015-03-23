@@ -79,7 +79,7 @@
                        </td>
                        <td align="left">
                            <input type="submit" value="Back" name="_target4"/>
-                           <input type="submit" value="Next" name="_target6"/>
+                           <input type="submit" value="Next" name="createIdentityDocument"/>
                        </td>
                    </tr>
                </tbody>

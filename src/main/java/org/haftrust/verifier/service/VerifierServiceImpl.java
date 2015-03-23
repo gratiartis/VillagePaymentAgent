@@ -31,6 +31,7 @@ import org.haftrust.verifier.model.enums.EducationLevel;
 import org.haftrust.verifier.model.enums.EducationType;
 import org.haftrust.verifier.model.enums.EmployeeType;
 import org.haftrust.verifier.model.enums.EmploymentStatus;
+import org.haftrust.verifier.model.enums.Gender;
 import org.haftrust.verifier.model.enums.IdentityDocumentType;
 import org.haftrust.verifier.model.enums.InterviewStatus;
 import org.haftrust.verifier.model.enums.VerificationStatus;
@@ -47,6 +48,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import javax.validation.Valid;
 
 @Service("verifierService")
 public class VerifierServiceImpl implements VerifierService {
@@ -593,8 +596,8 @@ public class VerifierServiceImpl implements VerifierService {
     public void setVerifierDetails(String strFirstName,
                                    String strMiddleName,
                                    String strLastName,
-                                   String strGender,
-                                   java.sql.Date sqlDob,
+                                   Gender strGender,
+                                   LocalDate dob,
                                    String strTelephoneNumber,
                                    String strEducationLevel,
                                    String strEducationType) {
@@ -602,7 +605,7 @@ public class VerifierServiceImpl implements VerifierService {
         verifier.setMiddleName(strMiddleName);
         verifier.setLastName(strLastName);
         verifier.setGender(strGender);
-        verifier.setDob(sqlDob);
+        verifier.setDob(dob);
 
         verifier.setTelephoneNumber(strTelephoneNumber);
         verifier.setEducationLevel(EducationLevel.valueOfValue(strEducationLevel));
@@ -623,36 +626,24 @@ public class VerifierServiceImpl implements VerifierService {
         this.bank = bank;
     }
 
-    public void setReference1Details(String strReference1Title,
-                                     String strReference1FullName,
-                                     String strReference1OrganisationName,
-                                     String strReference1Designation,
-                                     String strReference1ContactNumber,
-                                     String strReference1Email,
-                                     String strReference1Address) {
-        reference1.setTitle(strReference1Title);
-        reference1.setFullName(strReference1FullName);
-        reference1.setOrganisationName(strReference1OrganisationName);
-        reference1.setDesignation(strReference1Designation);
-        reference1.setContactNumber(strReference1ContactNumber);
-        reference1.setEmail(strReference1Email);
-        reference1.setAddress(strReference1Address);
+    public void setReference1Details(Verifier verifier, Reference ref) {
+        reference1.setTitle(ref.getTitle());
+        reference1.setFullName(ref.getFullName());
+        reference1.setOrganisationName(ref.getOrganisationName());
+        reference1.setDesignation(ref.getDesignation());
+        reference1.setContactNumber(ref.getContactNumber());
+        reference1.setEmail(ref.getEmail());
+        reference1.setAddress(ref.getAddress());
     }
 
-    public void setReference2Details(String strReference2Title,
-                                     String strReference2FullName,
-                                     String strReference2OrganisationName,
-                                     String strReference2Designation,
-                                     String strReference2ContactNumber,
-                                     String strReference2Email,
-                                     String strReference2Address) {
-        reference2.setTitle(strReference2Title);
-        reference2.setFullName(strReference2FullName);
-        reference2.setOrganisationName(strReference2OrganisationName);
-        reference2.setDesignation(strReference2Designation);
-        reference2.setContactNumber(strReference2ContactNumber);
-        reference2.setEmail(strReference2Email);
-        reference2.setAddress(strReference2Address);
+    public void setReference2Details(Verifier verifier, Reference ref) {
+        reference2.setTitle(ref.getTitle());
+        reference2.setFullName(ref.getFullName());
+        reference2.setOrganisationName(ref.getOrganisationName());
+        reference2.setDesignation(ref.getDesignation());
+        reference2.setContactNumber(ref.getContactNumber());
+        reference2.setEmail(ref.getEmail());
+        reference2.setAddress(ref.getAddress());
     }
 
     public void setAddressDetails(String strStreet,
@@ -734,6 +725,71 @@ public class VerifierServiceImpl implements VerifierService {
     public Country setVerifierCountry(int countryId) {
         verifierCountry = countryDao.findOne(countryId);
         return verifierCountry;
+    }
+
+    
+    @Override
+    @Transactional
+    public void updateVerifierDetails(Verifier verifier) {
+        verifierDao.save(verifier);
+    }
+    
+            
+    @Override
+    @Transactional
+    public void updateVerifierAddress(Verifier verifier, @Valid Address addressChanges) {
+        Address verifierAddress = verifier.getAddress();
+
+        verifierAddress.setVerifier(verifier);
+        verifierAddress.setEmployeeType(EmployeeType.VERIFIER);
+        
+        verifierAddress.setCity(addressChanges.getCity());
+        verifierAddress.setVillage(addressChanges.getVillage());
+        verifierAddress.setTown(addressChanges.getTown());
+        verifierAddress.setPostcode(addressChanges.getPostcode());
+        verifierAddress.setStreet(addressChanges.getStreet());
+        verifierAddress.setCountry(addressChanges.getCountry());
+        verifierAddress.setRegion(addressChanges.getRegion());
+        verifierAddress.setDistrict(addressChanges.getDistrict());
+        if (verifierAddress.getVerificationStatus() == null) {
+            verifierAddress.setVerificationStatus(VerificationStatus.AWAITING);
+        }
+        
+        verifierDao.save(verifier);
+    }
+    
+    @Override
+    @Transactional
+    public void updateVerifierCountry(Verifier verifier, Country country) {
+        this.verifier.getAddress().setCountry(country);
+        verifierDao.save(verifier);
+    }
+    
+    @Override
+    @Transactional
+    public void updateVerifierRegion(Verifier verifier, Region region) {
+        this.verifier.getAddress().setRegion(region);
+        verifierDao.save(verifier);
+    }
+    
+    @Override
+    @Transactional
+    public void updateVerifierDistrict(Verifier verifier, District district) {
+        verifierDistrict = district;
+        this.verifier.getAddress().setDistrict(district);
+        verifierDao.save(verifier);
+    }
+    
+    @Override
+    @Transactional
+    public void updateVerifierImageDetails(Verifier verifier, Image image) {
+        Image verifierImage = verifier.getImage();
+        verifierImage.setEmployeeType(EmployeeType.VERIFIER);
+        verifierImage.setPhoto(image.getPhoto());
+        verifierImage.setDate(image.getDate());
+        if (verifierImage.getVerificationStatus() == null) {
+            verifierImage.setVerificationStatus(VerificationStatus.AWAITING);
+        }
     }
 
     public Region setVerifierRegion(int regionId) {

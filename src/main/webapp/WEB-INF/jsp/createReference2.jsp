@@ -81,7 +81,7 @@
                        </td>
                        <td align="left">
                            <input type="submit" value="Back" name="_target7"/>
-                           <input type="submit" value="Register" name="_finish"/>
+                           <input type="submit" value="Register" name="createReference2"/>
                        </td>
                    </tr>
                </tbody>

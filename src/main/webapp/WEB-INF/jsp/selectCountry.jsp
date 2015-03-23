@@ -21,21 +21,19 @@
        <p align="center">
             <b>Select your Country</b>
         </p>
-       <form:form commandName="rvBean" method="post">
+       <form:form commandName="selectCountryFormBean" method="post">
            <table border="0" align="center">
                <tbody>
-
-
                    <tr>
                        <td>Country : </td>
-                       <td><form:select path="idCountry">
+                       <td><form:select path="countryId">
                                <form:options items="${countryList}" itemValue="id" itemLabel="description" />
                         </form:select></td>
-                       <td><form:errors path="idCountry" cssClass="error"/></td>
+                       <td><form:errors path="countryId" cssClass="error"/></td>
                    </tr>
                    <tr>
                        <td align="right"><input type="submit" value="Cancel" name="_cancel"/></td>
-                       <td colspan="2" align="left"><input type="submit" value="Next" name="_target2"/></td>
+                       <td colspan="2" align="left"><input type="submit" value="Next" name="selectCountry"/></td>
                        <td></td>
                    </tr>
                </tbody>

@@ -1,6 +1,8 @@
 package org.haftrust.verifier.service;
 
+import java.time.LocalDate;
 import java.util.List;
+
 import org.haftrust.verifier.model.Address;
 import org.haftrust.verifier.model.Bank;
 import org.haftrust.verifier.model.Country;
@@ -14,6 +16,7 @@ import org.haftrust.verifier.model.Reference;
 import org.haftrust.verifier.model.Region;
 import org.haftrust.verifier.model.StaticData;
 import org.haftrust.verifier.model.Verifier;
+import org.haftrust.verifier.model.enums.Gender;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -27,6 +30,14 @@ public interface VerifierService {
     public List<Country> getCountryList();
 
     public Country setVerifierCountry(int id);
+    
+    void updateVerifierDetails(Verifier verifier);
+    void updateVerifierCountry(Verifier verifier, Country country);
+    void updateVerifierRegion(Verifier verifier, Region country);
+    void updateVerifierDistrict(Verifier verifier, District country);
+    void updateVerifierAddress(Verifier verifier, Address address);
+    void updateVerifierImageDetails(Verifier verifier, Image image);
+    void updateVerifierIdentityDocument(Verifier verifier, IdentityDocument image);
 
     public List<Region> getRegionList(/*Country c*/);
 
@@ -61,8 +72,8 @@ public interface VerifierService {
     public void setVerifierDetails(String strFirstName,
             String strMiddleName,
             String strLastName,
-            String strGender,
-            java.sql.Date sqlDob,
+            Gender strGender,
+            LocalDate sqlDob,
             String strTelephoneNumber,
             String strEducationLevel,
             String strEducationType);
@@ -88,21 +99,9 @@ public interface VerifierService {
 
     public void setBankDetails(Bank bank);
 
-    public void setReference1Details(String strReference1Title,
-            String strReference1FullName,
-            String strReference1OrganisationName,
-            String strReference1Designation,
-            String strReference1ContactNumber,
-            String strReference1Email,
-            String strReference1Address);
+    public void setReference1Details(Verifier verifier, Reference reference);
 
-    public void setReference2Details(String strReference2Title,
-            String strReference2FullName,
-            String strReference2OrganisationName,
-            String strReference2Designation,
-            String strReference2ContactNumber,
-            String strReference2Email,
-            String strReference2Address);
+    public void setReference2Details(Verifier verifier, Reference reference);
 
     public Verifier registerVerifier();
 
@@ -158,4 +157,5 @@ public interface VerifierService {
     public void failVerification(String strVerifierVerificationComment);
 
     public List<Bank> getBanksWhereAccountIsRegistered(String account);
+
 }

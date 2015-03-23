@@ -158,7 +158,7 @@
                        </td>
                        <td align="left">
                            <input type="submit" value="Back" name="_target3"/>
-                           <input type="submit" value="Next" name="_target5"/>
+                           <input type="submit" value="Next" name="createVerifier"/>
                        </td>
                    </tr>
                </tbody>

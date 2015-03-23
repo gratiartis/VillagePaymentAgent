@@ -14,11 +14,13 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 import org.haftrust.verifier.model.enums.EmployeeType;
 import org.haftrust.verifier.model.enums.VerificationStatus;
 import org.haftrust.verifier.model.enums.converters.EmployeeTypeConverter;
 import org.haftrust.verifier.model.enums.converters.VerificationStatusConverter;
+import org.hibernate.validator.constraints.NotEmpty;
 
 /**
  *
@@ -39,6 +41,7 @@ public class Address implements java.io.Serializable {
     @Column(name = "village")
     private String village;
     
+    @NotEmpty
     @Column(name = "postcode")
     private String postcode;
     
@@ -58,22 +61,27 @@ public class Address implements java.io.Serializable {
     @Column(name = "verification_comment")
     private String verificationComment; 
     
+    @NotNull
     @Column(name = "employee_type")
     @Convert(converter = EmployeeTypeConverter.class)
     private EmployeeType employeeType;
     
+    @NotNull
     @OneToOne(optional = false, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "emp_id")
     private Verifier verifier;
     
+    @NotNull
     @ManyToOne(optional = false, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "ht_country_idcountry")
     private Country country;
     
+    @NotNull
     @ManyToOne(optional = false, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "ht_region_idregion")
     private Region region;
     
+    @NotNull
     @ManyToOne(optional = false, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "ht_district_iddistrict")
     private District district;

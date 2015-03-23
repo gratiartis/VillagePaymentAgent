@@ -1,6 +1,7 @@
 package org.haftrust.verifier.model;
 
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,10 +21,12 @@ import javax.validation.constraints.Size;
 import org.haftrust.verifier.model.enums.EducationLevel;
 import org.haftrust.verifier.model.enums.EducationType;
 import org.haftrust.verifier.model.enums.EmploymentStatus;
+import org.haftrust.verifier.model.enums.Gender;
 import org.haftrust.verifier.model.enums.VerificationStatus;
 import org.haftrust.verifier.model.enums.converters.EducationLevelConverter;
 import org.haftrust.verifier.model.enums.converters.EducationTypeConverter;
 import org.haftrust.verifier.model.enums.converters.EmploymentStatusConverter;
+import org.haftrust.verifier.model.enums.converters.GenderConverter;
 import org.haftrust.verifier.model.enums.converters.VerificationStatusConverter;
 import org.haftrust.verifier.validation.constraint.Password;
 import org.hibernate.validator.constraints.Email;
@@ -52,10 +55,11 @@ public class Verifier implements java.io.Serializable {
     private String lastName;
     
     @Column(name = "gender", length = 1)
-    private String gender;
+    @Convert(converter = GenderConverter.class)
+    private Gender gender;
     
     @Column(name = "dob")
-    private Date dob;
+    private LocalDate dob;
     
     @NotEmpty @Size(max = 45) @Email
     @Column(name = "email", unique = true, length = 45, nullable = false)
@@ -149,19 +153,19 @@ public class Verifier implements java.io.Serializable {
         this.lastName = lastName;
     }
 
-    public String getGender() {
+    public Gender getGender() {
         return gender;
     }
 
-    public void setGender(String gender) {
+    public void setGender(Gender gender) {
         this.gender = gender;
     }
 
-    public Date getDob() {
+    public LocalDate getDob() {
         return dob;
     }
 
-    public void setDob(Date dob) {
+    public void setDob(LocalDate dob) {
         this.dob = dob;
     }
 

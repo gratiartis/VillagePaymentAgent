@@ -1,6 +1,7 @@
 package org.haftrust.verifier.model;
 
 import java.sql.Date;
+import java.time.LocalDate;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -40,10 +41,10 @@ public class IdentityDocument implements java.io.Serializable {
     private IdentityDocumentType type;
     
     @Column(name = "issue_date")
-    private Date issueDate;
+    private LocalDate issueDate;
     
     @Column(name = "expiry_date")
-    private Date expiryDate;
+    private LocalDate expiryDate;
     
     @Column(name = "verification_status", length = 45)
     @Convert(converter = VerificationStatusConverter.class)
@@ -87,19 +88,19 @@ public class IdentityDocument implements java.io.Serializable {
         this.type = type;
     }
 
-    public Date getIssueDate() {
+    public LocalDate getIssueDate() {
         return issueDate;
     }
 
-    public void setIssueDate(Date issueDate) {
+    public void setIssueDate(LocalDate issueDate) {
         this.issueDate = issueDate;
     }
 
-    public Date getExpiryDate() {
+    public LocalDate getExpiryDate() {
         return expiryDate;
     }
 
-    public void setExpiryDate(Date expiryDate) {
+    public void setExpiryDate(LocalDate expiryDate) {
         this.expiryDate = expiryDate;
     }
 

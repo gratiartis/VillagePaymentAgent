@@ -1,7 +1,9 @@
 package org.haftrust.verifier.controller;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+
 import org.haftrust.verifier.model.Verifier;
 import org.haftrust.verifier.service.VerifierService;
 import org.haftrust.verifier.view.AllocateDeviceBean;
@@ -74,8 +76,8 @@ public class AllocateDeviceController {
         adBean.setMiddleName(verifier.getMiddleName());
         adBean.setLastName(verifier.getLastName());
         if (verifier.getDob() != null) {
-            LocalDate date = verifier.getDob().toLocalDate();
-            adBean.setDob(date.getYear() + "-" + date.getMonth().getValue() + "-" + date.getDayOfMonth());
+            LocalDate date = verifier.getDob();
+            adBean.setDob(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
         }
         adBean.setEmail(verifier.getEmail());
 

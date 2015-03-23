@@ -77,7 +77,7 @@
                        </td>
                        <td align="left">
                            <input type="submit" value="Back" name="_target5"/>
-                           <input type="submit" value="Next" name="_target7"/>
+                           <input type="submit" value="Next" name="createBank"/>
                        </td>
                    </tr>
                </tbody>
